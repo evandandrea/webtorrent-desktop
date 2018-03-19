@@ -536,6 +536,11 @@ function buildLinux (cb) {
       if (argv.package === 'zip' || argv.package === 'all') {
         tasks.push((cb) => packageZip(filesPath, destArch, cb))
       }
+      if (argv.package === 'snap' || argv.package === 'all') {
+        if (destArch === 'x64') {
+          tasks.push((cb) => packageSnap(filesPath, destArch, cb))
+        }
+      }
     })
     series(tasks, cb)
   })
@@ -586,6 +591,25 @@ function buildLinux (cb) {
     zip.zipSync(inPath, outPath)
 
     console.log(`Linux: Created ${destArch} zip.`)
+    cb(null)
+  }
+
+  function packageSnap (filesPath, destArch, cb) {
+    // Create .snap file for Linux
+    console.log(`Linux: Creating ${destArch} snap...`)
+
+    const snap = require('electron-installer-snap')({
+        src: filesPath,
+        arch: destArch,
+        confinement: 'strict',
+        grade: 'stable',
+        features: {
+            audio: true,
+            alsa: true
+        }
+    })
+
+    console.log(`Linux: Created ${destArch} snap.`)
     cb(null)
   }
 }
